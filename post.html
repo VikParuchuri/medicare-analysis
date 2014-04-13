@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+<title>Exploring US healthcare data</title>
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 12px;
+   margin: 8px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 { 
+   font-size:2.2em; 
+}
+
+h2 { 
+   font-size:1.8em; 
+}
+
+h3 { 
+   font-size:1.4em; 
+}
+
+h4 { 
+   font-size:1.0em; 
+}
+
+h5 { 
+   font-size:0.9em; 
+}
+
+h6 { 
+   font-size:0.8em; 
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre {	
+   margin-top: 0;
+   max-width: 95%;
+   border: 1px solid #ccc;
+   white-space: pre-wrap;
+}
+
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code.r, code.cpp {
+   background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * { 
+      background: transparent !important; 
+      color: black !important; 
+      filter:none !important; 
+      -ms-filter: none !important; 
+   }
+
+   body { 
+      font-size:12pt; 
+      max-width:100%; 
+   }
+       
+   a, a:visited { 
+      text-decoration: underline; 
+   }
+
+   hr { 
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote { 
+      padding-right: 1em; 
+      page-break-inside: avoid; 
+   }
+
+   tr, img { 
+      page-break-inside: avoid; 
+   }
+
+   img { 
+      max-width: 100% !important; 
+   }
+
+   @page :left { 
+      margin: 15mm 20mm 15mm 10mm; 
+   }
+     
+   @page :right { 
+      margin: 15mm 10mm 15mm 20mm; 
+   }
+
+   p, h2, h3 { 
+      orphans: 3; widows: 3; 
+   }
+
+   h2, h3 { 
+      page-break-after: avoid; 
+   }
+}
+
+</style>
+
+
+
+
+
+</head>
+
+<body>
+<p><link rel="stylesheet" type="text/css" href="chart_data/nv.d3.css">
+<link rel="stylesheet" type="text/css" href="chart_data/MarkerCluster.css">
+<link rel="stylesheet" type="text/css" href="chart_data/MarkerCluster.Default.css">
+<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css" /></p>
+
+<style>
+  #top-physicians{
+    height: 500px;
+  }
+</style>
+
+<script src="http://d3js.org/d3.v3.js"></script>
+
+<script src="http://cdnjs.cloudflare.com/ajax/libs/nvd3/1.1.15-beta/nv.d3.min.js"></script>
+
+<script src="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js"></script>
+
+<script src="chart_data/leaflet.markercluster.js"></script>
+
+<h1>Exploring US healthcare data</h1>
+
+<p>A few days ago, the Centers for Medicare and Medicaid Services <a href="http://blog.cms.gov/2014/04/09/historic-release-of-data-delivers-unprecedented-transparency-on-the-medical-services-physicians-provide-and-how-much-they-are-paid/">released</a> some unprecedented data on the US healthcare system.  The data consists of 9 million rows showing how much each doctor in the US charged medicare, for what, and how much medicare paid out.  It doesn&#39;t quite cover everything (for example, services with less than 11 beneficiaries were removed for privacy reasons), but its the best thing we&#39;ve got.</p>
+
+<p>Immediately after the release, we started seeing <a href="http://www.bloomberg.com/news/2014-04-09/top-medicare-doctor-paid-21-million-in-2012-data-shows.html">news stories</a> about how some doctors were making millions of dollars.  This information is easily found, and easily sensationalized, but I started to wonder what less obvious things might be in the data.</p>
+
+<h2>Getting the data</h2>
+
+<p>You can grab the data <a href="http://www.cms.gov/Research-Statistics-Data-and-Systems/Statistics-Trends-and-Reports/Medicare-Provider-Charge-Data/Physician-and-Other-Supplier.html">here</a>.  I decided to use R to analyze it, because of the ease of interactive exploration and making visualizations.</p>
+
+<p>Actually working with the data can be a bit tricky, depending on how much RAM you have.  I have a good amount, and for convenience just read the whole csv file in with <code>read.csv</code>.  You could always use something like the <code>ff</code> package or read the data straight into a database if you have memory limitations.</p>
+
+<pre><code>pm = read.delim(physician_medicare, stringsAsFactors=FALSE)
+</code></pre>
+
+<p>Great, now that we have our data, let&#39;s explore it.</p>
+
+<h2>Surface level explorations</h2>
+
+<p>It&#39;s good to explore this kind of dataset rather than starting with specific questions to answer.  </p>
+
+<p>Here is a truncated view of the data:</p>
+
+<pre><code>         npi hcpcs_code line_srvc_cnt average_Medicare_payment_amt
+2 1003000126      99222           115                    108.11565
+3 1003000126      99223            93                    158.87000
+4 1003000126      99231           111                     30.72072
+5 1003000126      99232           544                     56.65566
+6 1003000126      99233            75                     81.39000
+7 1003000126      99238            95                     55.76884
+</code></pre>
+
+<p>The important columns are <code>npi</code>, which is a unique ID for the physician, and <code>hcpcs_code</code>, which is a unique ID for the service the doctor performed.  The other two fields will be important down the line.  <code>line_srvc_count</code> is how many of the given service the doctor performed, and <code>average_Medicare_payment_amt</code> is how much medicare paid each time it was performed.  You should look at the <a href="https://www.cms.gov/Research-Statistics-Data-and-Systems/Statistics-Trends-and-Reports/Medicare-Provider-Charge-Data/Downloads/Medicare-Physician-and-Other-Supplier-PUF-Methodology.pdf">data documentation</a> for what the other fields that aren&#39;t shown are.</p>
+
+<p>Right now, the data is unique when <code>npi</code> and <code>hcpcs_code</code> are taken together.  So we have a summary of each service that each doctor performed.</p>
+
+<p>We need to turn this into something that is unique on <code>npi</code> &ndash; something that is a summary of what each doctor did.  This will make comparison and finding useful things much simpler.</p>
+
+<h2>Converting the data</h2>
+
+<p>To convert the data, we could use something like <a href="http://cran.r-project.org/web/packages/plyr/index.html">ddply</a> or the base function <code>by</code>.  The problem with these is that they will be very slow for 9 million rows.  Even solutions like <code>ff</code> or <code>bigmemory</code> won&#39;t help much.  We could read the data into a database and then do a <code>group by</code> query to get data in batches, but we already picked the lazy route of reading into memory.</p>
+
+<p>Fortunately, the <a href="http://cran.r-project.org/web/packages/data.table/index.html">data table</a> package for R is awesome, and will make what we are doing easy.</p>
+
+<pre><code>pm = data.table(pm)
+phys_summ = pm[
+  , 
+  list(
+    service_total=sum(line_srvc_cnt),
+    ben_total=sum(bene_unique_cnt),
+    payment=sum(average_Medicare_payment_amt * line_srvc_cnt),
+    charged=sum(average_submitted_chrg_amt * line_srvc_cnt),
+    allowed=sum(average_Medicare_allowed_amt * line_srvc_cnt),
+    unique_services_per_patient=sum(bene_day_srvc_cnt)/sum(bene_unique_cnt),
+    duplicates_per_service=sum(line_srvc_cnt)/sum(bene_day_srvc_cnt),
+    services_per_patient=sum(line_srvc_cnt)/sum(bene_unique_cnt)
+  ),
+  by=&quot;npi&quot;
+  ]
+</code></pre>
+
+<p>The above code will transform our data so that <code>npi</code> is unique.  It will calculate some descriptor variables (feel free to add your own) while it does it.  In this case, we will see how much each doctor charged medicare, how much they were paid, how many beneficiaries they served, and more.</p>
+
+<h2>Finally, some graphs!</h2>
+
+<p>Media reports focused on how much the top doctors made, and inequality in general is an interesting approach to this data.  Let&#39;s look at income inequality among doctors by finding what percentage of the income is made by what percentage of doctors (ie top 5% makes 50% of the income).</p>
+
+<h3>Inequality across all physicians</h3>
+
+<p>To do this, we need to first just extract the data for doctors, and then calculate the cumulative sum of doctor payments.</p>
+
+<p>I was actually simplifying things before when I said that the data showed how much each doctor charged medicare.  The data actually has information from organizations (labs, hospitals, etc), as well as doctors.  We can filter each one like this:</p>
+
+<pre><code>docs = phys_summ[nppes_entity_code==&quot;I&quot;]
+orgs = phys_summ[nppes_entity_code==&quot;O&quot;]
+</code></pre>
+
+<p><code>nppes_entity_code</code> indicates whether an individual or organization made the charges.  We can now calculate our cumulative payments:</p>
+
+<pre><code>phys_ord = docs[order(docs$payment),c(&quot;npi&quot;, &quot;payment&quot;), with=FALSE]
+phys_ord$pay_cumulative = cumsum(phys_ord$payment)
+split_dist = floor(nrow(phys_ord)/20)
+groups = as.numeric(lapply(1:20, function(x){
+  phys_ord$pay_cumulative[split_dist * x]
+}))
+groups = (groups/groups[20]) * 100
+</code></pre>
+
+<p>The above code will give us how much the first 5% of doctors made, how much the first 10% made, and so on.</p>
+
+<div id="inequality-chart">
+  <svg style="height:500px;"></svg>
+</div>
+
+<script>
+d3.json('chart_data/doctor_inequality.json', function(data) {
+  nv.addGraph(function() {
+    var chart = nv.models.lineChart()
+                  .color(d3.scale.category10().range())
+                  .useInteractiveGuideline(true)
+                  ;
+  
+  data = [{
+      values: data,      //values - represents the array of {x,y} data points
+      key: 'Cumulative payment percentage', //key  - the name of the series.
+      color: '#ff7f0e'  //color - optional: choose your own line color.
+    }];
+    
+  chart.xAxis     //Chart x-axis settings
+      .axisLabel('Percentage of Doctors')
+      .tickFormat(d3.format(',r'));
+
+  chart.yAxis     //Chart y-axis settings
+      .axisLabel('Percentage of Payments')
+      .tickFormat(d3.format('.02f'));
+
+    d3.select('#inequality-chart svg')
+        .datum(data)
+        .call(chart);
+
+    //TODO: Figure out a good way to do this automatically
+    nv.utils.windowResize(chart.update);
+
+    return chart;
+  });
+});
+</script>
+
+<p>The above plot shows how stark the inequality is.  The bottom 75% of doctors get 25% of the payments.  The top 5% get 47% of all payments.  Doctors in this case also includes nurses and other practitioners who get Medicare reimbursement, along with doctors who don&#39;t bill Medicare much, so these numbers are likely too extreme.</p>
+
+<h3>Gender based numeric inequality</h3>
+
+<p>We can also look at the data by gender.  Overall, there are <code>523085</code> male physicians, and <code>302023</code> female.  </p>
+
+<p>Let&#39;s break down most common occupations by gender.</p>
+
+<pre><code>common_occupations = names(tail(sort(table(docs$provider_type)),15))
+occupations = do.call(rbind,lapply(common_occupations, function(x){
+  data.frame(occupation=x, female_count=nrow(females[females$provider_type==x,]), male_count=nrow(males[males$provider_type==x,]))
+}))
+</code></pre>
+
+<p>This will give us a list of the 10 most common occupations, and how many males and females are doing them.  Let&#39;s make a chart:</p>
+
+<div id="occupation-chart">
+  <svg style="height:500px;width=500px;"></svg>
+</div>
+
+<script>
+  d3.json('chart_data/occupations.json', function(data) {
+    nv.addGraph(function() {
+      var chart = nv.models.multiBarHorizontalChart()
+                  .x(function(d) { return d.label })
+                  .y(function(d) { return d.value })
+                  .showValues(true)           //Show bar value next to each bar.
+                  .tooltips(true)             //Show tooltips on hover.
+                  .transitionDuration(350)
+                  .margin({top: 30, right: 20, bottom: 50, left: 175})
+                  .showControls(true);        //Allow user to switch between "Grouped" and "Stacked" mode.
+                  
+      var new_dat = [
+          {
+            key: "Males",
+            color: "#4f99b4",
+            values: []
+          },
+          {
+            key: "Females",
+            color: "#d67777",
+            values: []
+          }
+      ];
+      for(var i=0;i < data.length;i++){
+        var label = data[i].occupation;
+        new_dat[0].values.push({
+          label: label,
+          value: data[i].male_count
+        });
+        new_dat[1].values.push({
+          label: label,
+          value: data[i].female_count
+        });
+      }
+      
+      console.log(new_dat);
+      
+      
+      chart.yAxis
+          .tickFormat(d3.format(',r'));
+  
+      d3.select('#occupation-chart svg')
+          .datum(new_dat)
+          .call(chart);
+  
+      nv.utils.windowResize(chart.update);
+  
+      return chart;
+    });
+  });
+</script>
+
+<p>We see that women outnumber men in jobs like <code>Nurse Practitioner</code> and <code>Physician Assistant</code>, whereas there are more men in jobs like <code>Internal Medicine</code> and <code>Emergency Medicine</code>.  </p>
+
+<h3>Gender based payment inequality</h3>
+
+<p>This is interesting, but doesn&#39;t tell us much about payments.  Let&#39;s look at how much practitioners of each speciality are paid, broken down by gender:</p>
+
+<div id="occupation-pay-chart">
+  <svg style="height:500px;width=500px;"></svg>
+</div>
+
+<script>
+  d3.json('chart_data/occupation_pay.json', function(data) {
+    nv.addGraph(function() {
+      var chart = nv.models.multiBarHorizontalChart()
+                  .x(function(d) { return d.label })
+                  .y(function(d) { return d.value })
+                  .showValues(true)           //Show bar value next to each bar.
+                  .tooltips(true)             //Show tooltips on hover.
+                  .transitionDuration(350)
+                  .margin({top: 30, right: 20, bottom: 50, left: 175})
+                  .showControls(true);        //Allow user to switch between "Grouped" and "Stacked" mode.
+                  
+      var new_dat = [
+          {
+            key: "Males",
+            color: "#4f99b4",
+            values: []
+          },
+          {
+            key: "Females",
+            color: "#d67777",
+            values: []
+          }
+      ];
+      for(var i=0;i < data.length;i++){
+        var label = data[i].occupation;
+        new_dat[0].values.push({
+          label: label,
+          value: data[i].male_count
+        });
+        new_dat[1].values.push({
+          label: label,
+          value: data[i].female_count
+        });
+      }
+      
+      console.log(new_dat);
+      
+      
+      chart.yAxis
+          .tickFormat(d3.format(',r'));
+  
+      d3.select('#occupation-pay-chart svg')
+          .datum(new_dat)
+          .call(chart);
+  
+      nv.utils.windowResize(chart.update);
+  
+      return chart;
+    });
+  });
+</script>
+
+<p>Men are, on average, reimbursed more from medicare for every single speciality in the top 10 most common.  This is kind of insane, and I don&#39;t know how to explain it.  Anyone with insight here would be welcome.</p>
+
+<h2>So where are all these doctors, anyways?</h2>
+
+<p>Let&#39;s move from high-level analysis into location based analysis.  One interesting way to do this is to see where the &ldquo;million dollar doctors&rdquo; &ndash; the ones who bill the most to medicare &ndash; are.  Let&#39;s make a map.</p>
+
+<div id="top-physicians" style="height=500px;"></div>
+
+<script>
+
+d3.json('chart_data/top_docs.json', function(data) {
+    var tiles = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+                maxZoom: 18,
+                attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors, Points &copy 2012 LINZ'
+            }),
+            latlng = L.latLng(40, -100);
+
+        var map = L.map('top-physicians', {center: latlng, zoom: 4, layers: [tiles]});
+
+        var markers = L.markerClusterGroup();
+        
+        for (var i = 0; i < data.length; i++) {
+            var a = data[i];
+            var marker = L.marker(new L.LatLng(a.lat, a.long), { title: a.name });
+            marker.bindPopup(a.name + " " + a.payment);
+            markers.addLayer(marker);
+        }
+
+        map.addLayer(markers);
+});
+
+</script>
+
+</body>
+
+</html>
+

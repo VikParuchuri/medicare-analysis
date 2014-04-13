@@ -1,0 +1,57 @@
+The higher your bad charge ratio, the less services you provide per customer (only for individual physicians, not for organizations).  See `cor(phys_summ[nppes_entity_code=="I",summary_vars, with=FALSE])`.  Maybe you don't have time to provide more?  Or inefficient practices see less patients?
+
+Multiple services per patient:
+
+Duplicates per service correlates more with payments than with charges -- you get paid more if you perform more services per patient.  Potentially overwhelm ability of people to process?  Same with ben_total.  Overwhelming?  They both correlated more strongly with payment than with charge.
+
+cor(docs[,summary_vars, with=FALSE])
+
+Breakdown of jobs by gender:
+sort(table(females$provider_type))
+sort(table(males$provider_type))
+
+
+Gender differences within specialties (ie internal medicine):
+
+summary(females[provider_type=="Internal Medicine",summary_vars, with=FALSE])
+summary(males[provider_type=="Internal Medicine",summary_vars, with=FALSE])
+
+Look at services per patient as well, some big differences.  As well as in ratio of payment to charged and in payment.
+
+
+Credentials are crazy:
+
+Maybe make a word cloud?
+sort(table(docs$nppes_credentials))
+sort(table(docs$provider_type))
+
+
+Total charges vary a lot by state:
+
+tapply(docs$payment, docs$nppes_provider_state, mean)
+
+And per-service charges vary as well:
+
+vals = tapply(phys_summ$payment/phys_summ$service_total, phys_summ$nppes_provider_state, mean)
+
+
+Potential to correlate the above with state health overall (life expectancy). (life_e$total)
+
+We tend to spend more money in states with low white life expectancies, but the effect is not as strong with African Americans, and reverses with Asians and Native Americans.  Latinos don't show a correlation.
+  
+  cor(life_comp[!is.na(life_comp[,"Native.American"]),c("Native.American", "charge")])
+  life_comp[order(life_comp$charge),]
+
+
+
+Within speciality (internal medicine) differences in payment rate by state:
+
+by(im, im$nppes_provider_state, function(x){
+  sum(x$payment)/sum(x$charged)
+})
+
+Services most commonly paid for:
+
+tail(hcpcs_summ[order(hcpcs_summ$payment)], 10)
+
+
