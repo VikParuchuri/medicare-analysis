@@ -18,9 +18,9 @@
 Exploring US healthcare data
 ========================================================
 
-A few days ago, the Centers for Medicare and Medicaid Services [released](http://blog.cms.gov/2014/04/09/historic-release-of-data-delivers-unprecedented-transparency-on-the-medical-services-physicians-provide-and-how-much-they-are-paid/) some unprecedented data on the US healthcare system.  The data consists of 9 million rows showing how much each doctor in the US charged medicare, for what, and how much medicare paid out.  It doesn't quite cover everything (for example, services with less than 11 beneficiaries were removed for privacy reasons), but its the best thing we've got.
+A few days ago, the Centers for Medicare and Medicaid Services (CMS) [released](http://blog.cms.gov/2014/04/09/historic-release-of-data-delivers-unprecedented-transparency-on-the-medical-services-physicians-provide-and-how-much-they-are-paid/) some unprecedented data on the US healthcare system.  The data consists of 9 million rows showing how much each doctor in the US charged Medicare, for what, and how much Medicare paid out.  It doesn't quite cover everything (for example, services with less than 11 beneficiaries were removed for privacy reasons), but its the best thing we've got.
 
-Immediately after the release, we started seeing [news stories](http://www.bloomberg.com/news/2014-04-09/top-medicare-doctor-paid-21-million-in-2012-data-shows.html) about how some doctors were making millions of dollars.  This information is easily found, and easily sensationalized, but I started to wonder what less obvious things might be in the data.
+Immediately after the release, we started seeing [news stories](http://www.bloomberg.com/news/2014-04-09/top-Medicare-doctor-paid-21-million-in-2012-data-shows.html) about how some doctors were making millions of dollars.  This information is easily found, and easily sensationalized, but I started to wonder what less obvious things might be in the data.
 
 Getting the data
 ------------------------------------------------------------
@@ -30,7 +30,7 @@ You can grab the data [here](http://www.cms.gov/Research-Statistics-Data-and-Sys
 Actually working with the data can be a bit tricky, depending on how much RAM you have.  I have a good amount, and for convenience just read the whole csv file in with `read.csv`.  You could always use something like the `ff` package or read the data straight into a database if you have memory limitations.
 
 ```
-pm = read.delim(physician_medicare, stringsAsFactors=FALSE)
+pm = read.delim(physician_Medicare, stringsAsFactors=FALSE)
 ```
 
 Great, now that we have our data, let's explore it.
@@ -52,7 +52,7 @@ Here is a truncated view of the data:
 7 1003000126      99238            95                     55.76884
 ```
 
-The important columns are `npi`, which is a unique ID for the physician, and `hcpcs_code`, which is a unique ID for the service the doctor performed.  The other two fields will be important down the line.  `line_srvc_count` is how many of the given service the doctor performed, and `average_Medicare_payment_amt` is how much medicare paid each time it was performed.  You should look at the [data documentation](https://www.cms.gov/Research-Statistics-Data-and-Systems/Statistics-Trends-and-Reports/Medicare-Provider-Charge-Data/Downloads/Medicare-Physician-and-Other-Supplier-PUF-Methodology.pdf) for what the other fields that aren't shown are.
+The important columns are `npi`, which is a unique ID for the physician, and `hcpcs_code`, which is a unique ID for the service the doctor performed.  The other two fields will be important down the line.  `line_srvc_count` is how many of the given service the doctor performed, and `average_Medicare_payment_amt` is how much Medicare paid each time it was performed.  You should look at the [data documentation](https://www.cms.gov/Research-Statistics-Data-and-Systems/Statistics-Trends-and-Reports/Medicare-Provider-Charge-Data/Downloads/Medicare-Physician-and-Other-Supplier-PUF-Methodology.pdf) for what the other fields that aren't shown are.
 
 Right now, the data is unique when `npi` and `hcpcs_code` are taken together.  So we have a summary of each service that each doctor performed.
 
@@ -83,7 +83,7 @@ phys_summ = pm[
   ]
 ```
 
-The above code will transform our data so that `npi` is unique.  It will calculate some descriptor variables (feel free to add your own) while it does it.  In this case, we will see how much each doctor charged medicare, how much they were paid, how many beneficiaries they served, and more.
+The above code will transform our data so that `npi` is unique.  It will calculate some descriptor variables (feel free to add your own) while it does it.  In this case, we will see how much each doctor charged Medicare, how much they were paid, how many beneficiaries they served, and more.
 
 Finally, some graphs!
 -------------------------------------------------------------
@@ -94,7 +94,7 @@ Media reports focused on how much the top doctors made, and inequality in genera
 
 To do this, we need to first just extract the data for doctors, and then calculate the cumulative sum of doctor payments.
 
-I was actually simplifying things before when I said that the data showed how much each doctor charged medicare.  The data actually has information from organizations (labs, hospitals, etc), as well as doctors.  We can filter each one like this:
+I was actually simplifying things before when I said that the data showed how much each doctor charged Medicare.  The data actually has information from organizations (labs, hospitals, etc), as well as doctors.  We can filter each one like this:
 
 ```
 docs = phys_summ[nppes_entity_code=="I"]
@@ -211,9 +211,6 @@ This will give us a list of the 10 most common occupations, and how many males a
         });
       }
       
-      console.log(new_dat);
-      
-      
       chart.yAxis
           .tickFormat(d3.format(',r'));
   
@@ -274,9 +271,6 @@ This is interesting, but doesn't tell us much about payments.  Let's look at how
         });
       }
       
-      console.log(new_dat);
-      
-      
       chart.yAxis
           .tickFormat(d3.format(',r'));
   
@@ -291,12 +285,12 @@ This is interesting, but doesn't tell us much about payments.  Let's look at how
   });
 </script>
 
-Men are, on average, reimbursed more from medicare for every single speciality in the top 10 most common.  This is kind of insane, and I don't know how to explain it.  Anyone with insight here would be welcome.
+Men are, on average, reimbursed more from Medicare for every single speciality in the top 10 most common.  This is kind of insane, and I don't know how to explain it.  Anyone with insight here would be welcome.
 
 So where are all these doctors, anyways?
 ------------------------------------------------------------
 
-Let's move from high-level analysis into location based analysis.  One interesting way to do this is to see where the "million dollar doctors" -- the ones who bill the most to medicare -- are.  Let's make a map.
+Let's move from high-level analysis into location based analysis.  One interesting way to do this is to see where the "million dollar doctors" -- the ones who bill the most to Medicare -- are.  Let's make a map.
 
 <div id="top-physicians" style="height=500px;"></div>
 
@@ -324,4 +318,89 @@ d3.json('chart_data/top_docs.json', function(data) {
 });
 
 </script>
+
+The lesson seems to be, if you are a doctor, get to Florida ASAP.
+
+State life expectancy
+---------------------------------------------------------
+
+Let's look at life expectancy by state and see how that correlates with Medicare spending.  Two theories would be that spending is higher in states with a lower life expectancy (because it is more needed there).  The opposite could also be true (spending is higher in states with higher life expectancy, which is what leads to the higher expectancy).
+
+In order to do this, we can get life expectancy data from [here](http://en.wikipedia.org/wiki/List_of_U.S._states_by_life_expectancy).  It is pretty easy to copy/paste the data into a csv file, or use an automated scraper.
+
+We can then create a per state charges data frame:
+
+```
+state_data = tapply(docs$payment, docs$nppes_provider_state, mean)
+per_state_charges = data.frame(state=names(state_data), charge=state_data)
+```
+
+And we can read in the life expectancy data and combine them (assuming we read the data into `life_e`):
+
+```
+life_comp = merge(life_e, per_state_charges, by.x="Code", by.y="state", all.y=FALSE, all.x=TRUE)
+```
+
+We can then look at the correlation between life expectancy and average Medicare payments by state.
+
+```
+groups = c("African.American", "Asian", "Latino", "Native.American", "White", "Total")
+correlations = as.numeric(lapply(groups, function(x){
+  dat = life_comp[!is.na(life_comp[,x]),]
+  cor(dat[,x], dat$charge)
+}))
+cor_frame=data.frame(group=gsub("\\.", " ", groups), cor=correlations)
+```
+
+This will actually find the correlation for each racial group (the life expectancy data has it, so why not use it?).
+
+<div id="group-corr-chart">
+  <svg style="height:500px;width=500px;"></svg>
+</div>
+
+<script>
+  d3.json('chart_data/group_correlations.json', function(data) {
+     nv.addGraph(function() {
+      var chart = nv.models.discreteBarChart()
+          .x(function(d) { return d.label })    //Specify the data accessors.
+          .y(function(d) { return d.value })
+          .tooltips(false)        //Don't show tooltips
+          .showValues(true)       //...instead, show the bar value right on top of each bar.
+          .transitionDuration(350)
+          ;
+          
+      var new_data = [ 
+        {
+          key: "Life expectancy and Medicare charge correlation",
+          values: [
+          ]
+        }
+      ]
+      
+      for(var i=0;i<data.length;i++){
+        new_data[0].values.push({
+          label: data[i].group,
+          value: data[i].cor
+        })
+      }
+    
+      d3.select('#group-corr-chart svg')
+          .datum(new_data)
+          .call(chart);
+    
+      nv.utils.windowResize(chart.update);
+    
+      return chart;
+    });
+  });
+</script>
+
+This is a really interesting result!  The total is negatively correlated with life expectancy very strongly, which indicates that Medicare spending is higher where it is needed (ie states with lower life expectancies get more Medicare spending).
+
+As for the individual ethnic groups, I am not 100% certain what it means, but I will try to interpret (let me know what you think!).  The interesting part is that life expectancy for whites correlates more strongly with spending, which indicates that Medicare is more strongly optimized towards the needs of the white population than the population as a whole.  Other groups are less strongly negatively correlated, and some are positively correlated, which indicates that Medicare isn't as responsive to those groups.  Of course, the data is only 100% complete for whites and overall, so missing data may be causing noise.  But it is very interesting that Medicare spends much less in areas where the native american life expectancy is lowest, for instance.
+
+The End / Future analysis
+-------------------------------------------------------------
+
+I really enjoyed this analysis, and want to do more, but I am running out of weekend time in which to do it!  Next time, I think I will take a look at fraud, and see if it is possible to make models to detect fraud.  I also want to see how combining this dataset with some of the other interesting Medicare datasets will look.
 

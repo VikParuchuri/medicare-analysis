@@ -161,3 +161,15 @@ top_docs = top_docs[complete.cases(top_docs),]
 top_docs$name = paste(top_docs$nppes_provider_first_name, top_docs$nppes_provider_last_org_name, top_docs$nppes_credentials)
 sel_data = top_docs[,c("name", "payment", "lat", "long"), with=FALSE]
 write(toJSON(sel_data), file="chart_data/top_docs.json")
+
+state_data = tapply(docs$payment, docs$nppes_provider_state, mean)
+per_state_charges = data.frame(state=names(state_data), charge=state_data)
+life_comp = merge(life_e, per_state_charges, by.x="Code", by.y="state", all.y=FALSE, all.x=TRUE)
+groups = c("African.American", "Asian", "Latino", "Native.American", "White", "Total")
+correlations = as.numeric(lapply(groups, function(x){
+  dat = life_comp[!is.na(life_comp[,x]),]
+  cor(dat[,x], dat$charge)
+}))
+
+cor_frame=data.frame(group=gsub("\\.", " ", groups), cor=correlations)
+write(toJSON(cor_frame), file="chart_data/group_correlations.json")
